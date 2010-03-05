@@ -1,0 +1,19 @@
+The software in this package is release under the MIT license.
+You are free to use it however you wish within the bounds of said
+license.
+
+More info: http://en.wikipedia.org/wiki/MIT_License
+
+Copyright (c) 2010 Jeremy Thomerson
+
+Distributed with code from:
+
+- jQuery (Dual MIT / GPL licensed)
+	jQuery.com
+
+- jQuery.xml2json plugin (Dual MIT / GPL licensed
+	http://www.fyneworks.com/jquery/xml-to-json/
+
+- A JavaScript implementation of the Secure Hash Algorithm, SHA-1
+	Licensed under the BSD license
+	http://pajhome.org.uk/crypt/md5
