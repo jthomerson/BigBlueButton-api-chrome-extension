@@ -275,13 +275,13 @@ function apiCallReadyStateChange(xhr) {
             console.debug("xhr.status: " + xhr.status + ' [' + xhr.statusText + ']');
             console.debug("Response Text:\n" + xhr.responseText);
         } else {
-            alert('There was a problem calling the API: ' + xhr.status + ' [' + xhr.statusText + ']');
+            showMessage('There was a problem calling the API: ' + xhr.status + ' [' + xhr.statusText + ']');
             return;
         }
 
         var response = xhr.responseText;
         if (response == undefined || response == null) {
-	        alert('error - response is undefined');
+	        showMessage('error - response is undefined');
 	        return;
         }
 
@@ -292,7 +292,7 @@ function apiCallReadyStateChange(xhr) {
 
         if('SUCCESS' == status) {
         } else{ 
-	        alert('error in json response: ' + msg);
+	        console.debug('error in json response: ' + msg);
         }
     }
 }
