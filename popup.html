@@ -51,6 +51,7 @@ var isRedirectCall = false;
 function clearCallConfigFields() {
     callParams = new Array();
     clearElemChildren(callFields);
+    fieldSetAlreadyFocused = false;
 }
 function clearElemChildren(elem) {
     if (elem.hasChildNodes()) {
@@ -91,6 +92,7 @@ function callChanged(selector) {
     }
     console.debug('new call selected: ' + selector.value);
     clearCallConfigFields();
+    isRedirectCall = false;
     switch(selector.value) {
         case 'isMeetingRunning':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
