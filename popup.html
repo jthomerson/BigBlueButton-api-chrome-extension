@@ -1,9 +1,30 @@
 <style>
 body {
-  min-width: 457px;
-  overflow-x: hidden;
+    min-width: 457px;
+    overflow-x: hidden;
+    font-family: Verdana, Arial, Times New Roman, Helvetica;
 }
 
+h1 {
+    font-size: 0.95em;
+}
+
+fieldset {
+    border: 1px solid #091A6C;
+    margin-top: 10px;
+}
+
+fieldset legend {
+    border: 1px solid #091A6C;
+    background-color: #B2BAD9;
+    padding: 1px 12px;
+    width: 200px;
+}
+
+.field label {
+    width: 200px;
+    float: left;
+}
 </style>
 
 <script type="text/javascript" src="jquery-1.3.2.js"> </script>
@@ -42,7 +63,7 @@ function addCallConfigField(fldName, fldDesc, defVal) {
     var div = document.createElement('div');
     var label = document.createElement('label');
     var input = document.createElement('input');
-    div.class = 'field';
+    div.className = 'field';
     label.htmlFor = fldName;
     label.appendChild(document.createTextNode(fldDesc));
     input.type = 'text';
@@ -115,9 +136,14 @@ function configurePage() {
     callSelector.focus();
 }
 
-function showMessage(msg) {
+function showMessage(msg, xml) {
     clearElemChildren(messageElem);
     messageElem.appendChild(document.createTextNode(msg));
+    if (xml != undefined && xml != null) {
+        var pre = document.createElement('pre');
+        pre.innerHTML = xml.replace(/></g,">\n<").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        messageElem.appendChild(pre);
+    }
 }
 
 function encodeQueryParams(params) {
@@ -172,11 +198,7 @@ function makeAPICall() {
     };
     xhr.open("GET", url, true);
     xhr.send(null);
-/*
-    jQuery.get(url, function(data) {
-        alert('jquery: ' + data);
-    });
-*/
+
     return false;
 }
 
@@ -199,28 +221,29 @@ function removeKey(arr, key) {
 function apiCallReadyStateChange(xhr) {
     if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
-            alert('success');
-            alert("xhr.status: " + xhr.status + ' [' + xhr.statusText + ']');
-            alert("Response Text:\n" + xhr.responseText);
+            console.debug('success');
+            console.debug("xhr.status: " + xhr.status + ' [' + xhr.statusText + ']');
+            console.debug("Response Text:\n" + xhr.responseText);
         } else {
             alert('There was a problem calling the API: ' + xhr.status + ' [' + xhr.statusText + ']');
+            return;
         }
-    }
 
-    return;
-    response = xhr.responseText;
-    if (response == undefined || response == null) {
-	    alert('error - response is undefined');
-	    return;
-    }
-    var resp = $.xml2json(response); 
+        var response = xhr.responseText;
+        if (response == undefined || response == null) {
+	        alert('error - response is undefined');
+	        return;
+        }
 
-    var status = resp.returncode;
-    var msg = resp.message;
+        showMessage('Response XML:', response);
+        var resp = $.xml2json(response);
+        var status = resp.returncode;
+        var msg = resp.message;
 
-    if('SUCCESS' == status) {
-    } else{ 
-	    alert('error in json response: ' + msg);
+        if('SUCCESS' == status) {
+        } else{ 
+	        alert('error in json response: ' + msg);
+        }
     }
 }
 </script>
