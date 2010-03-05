@@ -46,6 +46,7 @@ var messageElem = null
 // transient values:
 var fieldSetAlreadyFocused = false;
 var callParams = new Array();
+var isRedirectCall = false;
 
 function clearCallConfigFields() {
     callParams = new Array();
@@ -95,6 +96,30 @@ function callChanged(selector) {
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
             addCallConfigField('meetingToken', 'Meeting Token:', '');
             break;
+        case 'create':
+            addCallConfigField('meetingID', 'Meeting ID:', 'test123');
+            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            addCallConfigField('name', 'Meeting Name:', 'BBB Example Meeting');
+            addCallConfigField('moderatorPW', 'Moderator Password:', '123456');
+            addCallConfigField('attendeePW', 'Attendee Password:', '234567');
+            break;
+        case 'join':
+            addCallConfigField('meetingID', 'Meeting ID:', 'test123');
+            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            addCallConfigField('password', 'Password:', '123456');
+            addCallConfigField('fullName', 'Attendee Name:', 'Joe Host');
+            isRedirectCall = true;
+            break;
+        case 'getMeetingInfo':
+            addCallConfigField('meetingID', 'Meeting ID:', 'test123');
+            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            addCallConfigField('password', 'Moderator Password:', '123456');
+            break;
+        case 'end':
+            addCallConfigField('meetingID', 'Meeting ID:', 'test123');
+            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            addCallConfigField('password', 'Moderator Password:', '123456');
+            break;
         default:
             clearCallConfigFields();
             showMessage('No configurable fields for this call [' + selector.value + ']');
@@ -134,16 +159,6 @@ function configurePage() {
     messageElem = document.getElementById('message');
     loadValues();
     callSelector.focus();
-}
-
-function showMessage(msg, xml) {
-    clearElemChildren(messageElem);
-    messageElem.appendChild(document.createTextNode(msg));
-    if (xml != undefined && xml != null) {
-        var pre = document.createElement('pre');
-        pre.innerHTML = xml.replace(/></g,">\n<").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-        messageElem.appendChild(pre);
-    }
 }
 
 function encodeQueryParams(params) {
@@ -191,13 +206,18 @@ function makeAPICall() {
 
     var url = "http://" + domain + context + callName + "?" + encodeQueryParams(params);
     console.debug('Call URL: ' + url);
-
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        apiCallReadyStateChange(xhr);
-    };
-    xhr.open("GET", url, true);
-    xhr.send(null);
+    
+    if (isRedirectCall) {
+        showMessage('Redirect to: ' + url);
+        chrome.tabs.create({ url: url });
+    } else {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            apiCallReadyStateChange(xhr);
+        };
+        xhr.open("GET", url, true);
+        xhr.send(null);
+    }
 
     return false;
 }
@@ -246,6 +266,17 @@ function apiCallReadyStateChange(xhr) {
         }
     }
 }
+
+function showMessage(msg, xml) {
+    clearElemChildren(messageElem);
+    messageElem.appendChild(document.createTextNode(msg));
+    if (xml != undefined && xml != null) {
+        var pre = document.createElement('pre');
+        pre.innerHTML = xml.replace(/></g,">\n<").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        messageElem.appendChild(pre);
+    }
+}
+
 </script>
 
 <body onload="configurePage();">
@@ -257,10 +288,11 @@ function apiCallReadyStateChange(xhr) {
             <label for="callSelector">API Call:</label>
             <select id="callSelector" name="callSelector" onchange="callChanged(this)">
                 <option value="__NOCALL__">-- Choose One --</option>
-                <option value="isMeetingRunning">isMeetingRunning</option>
-                <option value="getMeetingInfo">getMeetingInfo</option>
                 <option value="create">create</option>
                 <option value="join">join</option>
+                <option value="isMeetingRunning">isMeetingRunning</option>
+                <option value="getMeetingInfo">getMeetingInfo</option>
+                <option value="end">end</option>
             </select>
         </div>
         <fieldset id="configFields">
