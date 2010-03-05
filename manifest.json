@@ -31,6 +31,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     "default_icon": "icon.png",
     "popup": "popup.html"
   },
+  "icons": { 
+    "48": "icon48.png",
+    "128": "icon128.png" 
+  },
   "permissions": [
     "tabs",
     "http://*/"
