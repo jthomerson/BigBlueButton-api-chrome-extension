@@ -200,8 +200,8 @@ function apiCallReadyStateChange(xhr) {
     if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
             alert('success');
-            alert("XHR:\n" + xhr.toStringEnhanced());
-            alert("Response Text\n" + xhr.responseText);
+            alert("xhr.status: " + xhr.status + ' [' + xhr.statusText + ']');
+            alert("Response Text:\n" + xhr.responseText);
         } else {
             alert('There was a problem calling the API: ' + xhr.status + ' [' + xhr.statusText + ']');
         }
