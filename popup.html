@@ -316,7 +316,7 @@ function showMessage(msg, xml) {
     <form id="mainForm" action="#" method="post" onsubmit="return makeAPICall();">
         <div class="field">
             <label for="callSelector">API Call:</label>
-            <select id="callSelector" name="callSelector" onchange="callChanged(this)">
+            <select id="callSelector" name="callSelector" onchange="callChanged(this)" onblur="callChanged(this)">
                 <option value="__NOCALL__">-- Choose One --</option>
                 <option value="create">create</option>
                 <option value="join">join</option>
