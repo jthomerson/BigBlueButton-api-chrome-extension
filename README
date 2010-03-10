@@ -1,0 +1,12 @@
+BigBlueButton API Chrome Extension
+
+This is a simple extension for Chrome that makes it easy to test the BigBlueButton API.
+
+This is released under the MIT license.  See LICENSE for more information.
+
+References:
+BigBlueButton: http://bigbluebutton.org
+               http://code.google.com/p/bigbluebutton/
+
+Extension in Chrome Gallery: http://tinyurl.com/bbbapi
+    (or https://chrome.google.com/extensions/detail/ncbonhmhjnamefpmmjdpbohnkbeliehb)
