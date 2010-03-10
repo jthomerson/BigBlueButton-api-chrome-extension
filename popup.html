@@ -25,12 +25,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 <style>
 body {
     min-width: 457px;
-    overflow-x: hidden;
     font-family: Verdana, Arial, Times New Roman, Helvetica;
 }
 
 p#message {
     width: 420px;
+    font-size: 0.85em;
+}
+
+p#message pre {
+    font-size: 1.0em;
 }
 
 h1 {
@@ -66,14 +70,14 @@ input:focus {
 
 <script type="text/javascript" src="jquery-1.3.2-min.js"> </script>
 <script type="text/javascript" src="jquery.xml2json-min.js"> </script>
+<script type="text/javascript" src="json2.js"> </script>
 <script type="text/javascript" src="sha1-min.js"> </script>
 <script>
-var savedFields = ['serverDomain', 'contextPath', 'securitySalt'];
-
 if (console == undefined) {
     var console = new Object();
     console.debug = function(msg) {};
 }
+
 // html elements used in script:
 var form = null;
 var callFields = null;
@@ -168,27 +172,48 @@ function callChanged(selector) {
 
 }
 
+var savedFields = ['serverDomain', 'contextPath', 'securitySalt'];
+var savedFieldsKey = 'serverDomain';
+
 function saveValues() {
     console.debug('saveValues');
+    
+    var keyelem = eval('form.' + savedFieldsKey);
+    var key = keyelem.value;
+    console.debug('saving with key: ' + key);
+
+    var toSave = {};
     for(var i = 0; i < savedFields.length; i++) {  
         console.debug('save field: ' + savedFields[i]);
         var elem = eval('form.' + savedFields[i]);
         console.debug('value: ' + elem.value);
-        localStorage[savedFields[i]] = elem.value;
+        toSave[savedFields[i]] = elem.value;
+    }
+
+    localStorage[key] = JSON.stringify(toSave);
+    localStorage['lastKey'] = key;
+    console.debug('saved: ' + JSON.stringify(toSave));
+}
+
+function loadValuesWithKey(key) {
+    var loadedValues = localStorage[key];
+    console.debug('loaded: ' + loadedValues);
+    if (loadedValues != undefined) {
+        loadedValues = JSON.parse(loadedValues);
+        for(var i = 0; i < savedFields.length; i++) {  
+            console.debug('load field: ' + savedFields[i]);
+            var elem = eval('form.' + savedFields[i]);
+            console.debug('value: ' + elem.value);
+            var loaded = loadedValues[savedFields[i]];
+            if (loaded != undefined) {
+                elem.value = loaded;
+            }
+        }
     }
 }
 
-function loadValues() {
-    console.debug('loadValues');
-    for(var i = 0; i < savedFields.length; i++) {  
-        console.debug('load field: ' + savedFields[i]);
-        var elem = eval('form.' + savedFields[i]);
-        console.debug('value: ' + elem.value);
-        var loaded = localStorage[savedFields[i]];
-        if (loaded != undefined) {
-            elem.value = loaded;
-        }
-    }
+function tryLoadingConfigForServer(server) {
+    loadValuesWithKey(server);
 }
 
 function configurePage() {
@@ -196,7 +221,7 @@ function configurePage() {
     callFields = document.getElementById('perCallFields');
     callSelector = document.getElementById('callSelector');
     messageElem = document.getElementById('message');
-    loadValues();
+    loadValuesWithKey(localStorage['lastKey']);
     callSelector.focus();
 }
 
@@ -252,7 +277,7 @@ function makeAPICall() {
     } else {
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
-            apiCallReadyStateChange(xhr);
+            apiCallReadyStateChange(xhr, url);
         };
         xhr.open("GET", url, true);
         xhr.send(null);
@@ -277,14 +302,14 @@ function removeKey(arr, key) {
     return tmpArray;
 }
 
-function apiCallReadyStateChange(xhr) {
+function apiCallReadyStateChange(xhr, url) {
     if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
             console.debug('success');
             console.debug("xhr.status: " + xhr.status + ' [' + xhr.statusText + ']');
             console.debug("Response Text:\n" + xhr.responseText);
         } else {
-            showMessage('There was a problem calling the API: ' + xhr.status + ' [' + xhr.statusText + ']');
+            showMessage('There was a problem calling the API: ' + xhr.status + ' [' + xhr.statusText + ']<br />URL was: ' + url + '<br />');
             return;
         }
 
@@ -294,7 +319,7 @@ function apiCallReadyStateChange(xhr) {
 	        return;
         }
 
-        showMessage('Response XML:', response);
+        showMessage('Called URL:<br /><a onclick="chrome.tabs.create({ url: ' + url + ' });">' + url + '</a><br /><br />Response XML:', response);
         var resp = $.xml2json(response);
         var status = resp.returncode;
         var msg = resp.message;
@@ -308,7 +333,7 @@ function apiCallReadyStateChange(xhr) {
 
 function showMessage(msg, xml) {
     clearElemChildren(messageElem);
-    messageElem.appendChild(document.createTextNode(msg));
+    messageElem.innerHTML = msg;
     if (xml != undefined && xml != null) {
         var pre = document.createElement('pre');
         pre.innerHTML = xml.replace(/></g,">\n<").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -322,7 +347,7 @@ function showMessage(msg, xml) {
 <div>
     <h1>Test a BigBlueButton API Call</h1>
     <p id="message"></p>
-    <form id="mainForm" action="#" method="post" onsubmit="return makeAPICall();">
+    <form id="mainForm" action="#" method="post" onsubmit="makeAPICall();">
         <div class="field">
             <label for="callSelector">API Call:</label>
             <select id="callSelector" name="callSelector" onchange="callChanged(this)" onblur="callChanged(this)">
@@ -343,7 +368,7 @@ function showMessage(msg, xml) {
             <legend>Server Configuration</legend>
             <div class="field">
                 <label for="serverDomain">Server:</label>
-                <input type="text" name="serverDomain" value="devbuild.bigbluebutton.org" />
+                <input type="text" name="serverDomain" onchange="tryLoadingConfigForServer(this.value)" onblur="tryLoadingConfigForServer(this.value)" value="devbuild.bigbluebutton.org" />
             </div>
             <div class="field">
                 <label for="contextPath">Context Path:</label>
