@@ -135,6 +135,9 @@ function callChanged(selector) {
     clearCallConfigFields();
     isRedirectCall = false;
     switch(selector.value) {
+        case 'getMeetings':
+            addCallConfigField('random', 'Random value:', Math.floor(Math.random()*10000));
+            break;
         case 'isMeetingRunning':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
             addCallConfigField('meetingToken', 'Meeting Token:', '');
@@ -352,6 +355,7 @@ function showMessage(msg, xml) {
             <label for="callSelector">API Call:</label>
             <select id="callSelector" name="callSelector" onchange="callChanged(this)" onblur="callChanged(this)">
                 <option value="__NOCALL__">-- Choose One --</option>
+                <option value="getMeetings">getMeetings</option>
                 <option value="create">create</option>
                 <option value="join">join</option>
                 <option value="isMeetingRunning">isMeetingRunning</option>
