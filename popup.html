@@ -73,6 +73,15 @@ input:focus {
 <script type="text/javascript" src="json2.js"> </script>
 <script type="text/javascript" src="sha1-min.js"> </script>
 <script>
+
+/* 
+TODO 0.7:
+ - DONE - create checksum correctly depending on version
+ - DONE - add userID to join call
+ - DONE - remove meetingToken for 0.64 server calls
+ - DONE - add userID to join only for 0.7 server calls
+*/
+
 if (console == undefined) {
     var console = new Object();
     console.debug = function(msg) {};
@@ -127,11 +136,13 @@ function addCallConfigField(fldName, fldDesc, defVal) {
 function isValidCallSelected(selector) {
     return selector.value != '__NOCALL__';
 }
-function callChanged(selector) {
+function callChanged() {
+    var selector = callSelector;
     if (!isValidCallSelected(selector)) {
         return false;
     }
     console.debug('new call selected: ' + selector.value);
+    var version = form.apiVersion.value;
     clearCallConfigFields();
     isRedirectCall = false;
     switch(selector.value) {
@@ -140,30 +151,43 @@ function callChanged(selector) {
             break;
         case 'isMeetingRunning':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
-            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            if (version == '0.64') {
+                addCallConfigField('meetingToken', 'Meeting Token:', '');
+            }
             break;
         case 'create':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
-            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            if (version == '0.64') {
+                addCallConfigField('meetingToken', 'Meeting Token:', '');
+            }
             addCallConfigField('name', 'Meeting Name:', 'BBB Example Meeting');
             addCallConfigField('moderatorPW', 'Moderator Password:', '123456');
             addCallConfigField('attendeePW', 'Attendee Password:', '234567');
             break;
         case 'join':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
-            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            if (version == '0.64') {
+                addCallConfigField('meetingToken', 'Meeting Token:', '');
+            }
             addCallConfigField('password', 'Password:', '123456');
             addCallConfigField('fullName', 'Attendee Name:', 'Joe Host');
+            if (version == '0.7') {
+                addCallConfigField('userID', 'User ID:', 'joehost-123');
+            }
             isRedirectCall = true;
             break;
         case 'getMeetingInfo':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
-            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            if (version == '0.64') {
+                addCallConfigField('meetingToken', 'Meeting Token:', '');
+            }
             addCallConfigField('password', 'Moderator Password:', '123456');
             break;
         case 'end':
             addCallConfigField('meetingID', 'Meeting ID:', 'test123');
-            addCallConfigField('meetingToken', 'Meeting Token:', '');
+            if (version == '0.64') {
+                addCallConfigField('meetingToken', 'Meeting Token:', '');
+            }
             addCallConfigField('password', 'Moderator Password:', '123456');
             break;
         default:
@@ -175,7 +199,7 @@ function callChanged(selector) {
 
 }
 
-var savedFields = ['serverDomain', 'contextPath', 'securitySalt'];
+var savedFields = ['serverDomain', 'contextPath', 'securitySalt', 'apiVersion'];
 var savedFieldsKey = 'serverDomain';
 
 function saveValues() {
@@ -217,6 +241,7 @@ function loadValuesWithKey(key) {
 
 function tryLoadingConfigForServer(server) {
     loadValuesWithKey(server);
+    callChanged();
 }
 
 function configurePage() {
@@ -247,6 +272,7 @@ function makeAPICall() {
     http://devbuild.bigbluebutton.org/bigbluebutton/api/isMeetingRunning?meetingID=123456
     http://devbuild.bigbluebutton.org/bigbluebutton/api/getMeetingInfo?meetingID=123456
     */
+    var version = form.apiVersion.value;
     var domain = form.serverDomain.value;
     var salt = form.securitySalt.value;
     var context = form.contextPath.value;
@@ -268,7 +294,7 @@ function makeAPICall() {
     }
 
     if (containsValue(salt)) {
-        params['checksum'] = createChecksum(salt, encodeQueryParams(params));
+        params['checksum'] = createChecksum(version, callName, salt, encodeQueryParams(params));
     }
 
     var url = "http://" + domain + context + callName + "?" + encodeQueryParams(params);
@@ -289,8 +315,11 @@ function makeAPICall() {
     return false;
 }
 
-function createChecksum(salt, queryString) {
-    return hex_sha1(queryString + salt);
+function createChecksum(version, callName, salt, queryString) {
+    if (version == '0.64') {
+        return hex_sha1(queryString + salt);
+    }
+    return hex_sha1(callName + queryString + salt);
 }
 
 function containsValue(val) {
@@ -353,7 +382,7 @@ function showMessage(msg, xml) {
     <form id="mainForm" action="#" method="post" onsubmit="makeAPICall();">
         <div class="field">
             <label for="callSelector">API Call:</label>
-            <select id="callSelector" name="callSelector" onchange="callChanged(this)" onblur="callChanged(this)">
+            <select id="callSelector" name="callSelector" onchange="callChanged()" onblur="callChanged()">
                 <option value="__NOCALL__">-- Choose One --</option>
                 <option value="getMeetings">getMeetings</option>
                 <option value="create">create</option>
@@ -373,6 +402,13 @@ function showMessage(msg, xml) {
             <div class="field">
                 <label for="serverDomain">Server:</label>
                 <input type="text" name="serverDomain" onchange="tryLoadingConfigForServer(this.value)" onblur="tryLoadingConfigForServer(this.value)" value="devbuild.bigbluebutton.org" />
+            </div>
+            <div class="field">
+                <label for="apiVersion">API Version:</label>
+                <select id="apiVersion" name="apiVersion" onchange="callChanged()" onblur="callChanged()">
+                    <option value="0.64">0.64</option>
+                    <option value="0.7">0.7</option>
+                </select>
             </div>
             <div class="field">
                 <label for="contextPath">Context Path:</label>
