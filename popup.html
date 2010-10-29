@@ -298,7 +298,7 @@ function makeAPICall() {
     }
 
     var url = "http://" + domain + context + callName + "?" + encodeQueryParams(params);
-    console.debug('Call URL: ' + url);
+	console.debug('Call URL: ' + url);
     
     if (isRedirectCall) {
         showMessage('Redirect to: ' + url);
@@ -309,7 +309,7 @@ function makeAPICall() {
             apiCallReadyStateChange(xhr, url);
         };
         xhr.open("GET", url, true);
-        xhr.send(null);
+        xhr.send();
     }
 
     return false;
@@ -379,7 +379,7 @@ function showMessage(msg, xml) {
 <div>
     <h1>Test a BigBlueButton API Call</h1>
     <p id="message"></p>
-    <form id="mainForm" action="#" method="post" onsubmit="makeAPICall();">
+    <form id="mainForm" action="#" method="get">
         <div class="field">
             <label for="callSelector">API Call:</label>
             <select id="callSelector" name="callSelector" onchange="callChanged()" onblur="callChanged()">
@@ -419,7 +419,7 @@ function showMessage(msg, xml) {
                 <input type="text" name="securitySalt" value="639259d4-9dd8-4b25-bf01-95f9567eaf4b" />
             </div>
         </fieldset>
-        <input type="submit" value="Make Call" />
+        <input type="button" onclick="makeAPICall();" value="Make Call" />
     </form>
 </div>
 </body>
