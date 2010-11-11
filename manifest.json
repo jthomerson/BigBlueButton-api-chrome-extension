@@ -1,6 +1,6 @@
 {
   "name": "BigBlueButton API Extension",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "An extension that makes it easier to use the BigBlueButton API from your browser (for testing and developing, etc).",
   "browser_action": {
     "default_icon": "icon.png",
